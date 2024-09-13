@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mini_store/repositories/product_repository.dart';
-import '../blocs/product_bloc.dart';
-import '../blocs/product_state.dart';
-import '../blocs/product_event.dart';
-import '../models/product_model.dart';
-import 'product_details_screen.dart';
-import 'add_product_modal.dart';
+import 'package:mini_store/blocs/product_bloc.dart';
+import 'package:mini_store/blocs/product_state.dart';
+import 'package:mini_store/blocs/product_event.dart';
+import 'package:mini_store/models/product_model.dart';
+import 'package:mini_store/screens/product_details_screen.dart';
+import 'package:mini_store/screens/add_product_modal.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});

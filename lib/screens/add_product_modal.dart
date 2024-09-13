@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mini_store/blocs/product_bloc.dart';
 import 'package:mini_store/blocs/product_event.dart';
@@ -9,7 +7,10 @@ import 'package:mini_store/models/product_model.dart';
 import 'package:mini_store/repositories/category_repository.dart';
 
 class AddProductModal extends StatefulWidget {
+  const AddProductModal({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _AddProductModalState createState() => _AddProductModalState();
 }
 

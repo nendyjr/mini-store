@@ -1,33 +1,30 @@
 import 'package:dio/dio.dart';
 import 'package:mini_store/config/constant.dart';
-import '../models/product_model.dart';
+import 'package:mini_store/repositories/product_preference.dart';
+import 'package:mini_store/models/product_model.dart';
 
 class ProductRepository {
   final Dio _dio = Dio();
   final String baseUrl = '${Constant.baseUrl}${Constant.appId}/products';
+  final ProductPreference _preference = ProductPreference();
 
   // Fetch products with pagination
   Future<List<Product>> fetchProducts(int page, int pageSize) async {
     try {
+      if (page > 1) {
+        final products = await _preference.loadProductList();
+        getPagination(products, page, pageSize);
+      }
       // Fetch all products
       final response = await _dio.get(baseUrl);
-
       if (response.statusCode == 200) {
         List<dynamic> allProducts = response.data;
 
-        // Paginate manually
-        int startIndex = (page - 1) * pageSize;
-        int endIndex = startIndex + pageSize;
+        List<Product> products = allProducts.map((json) => Product.fromJson(json)).toList();
 
-        if (startIndex >= allProducts.length) return [];
+        _preference.saveProductList(products);
 
-        if (endIndex > allProducts.length) endIndex = allProducts.length;
-
-        // Convert JSON to Product model
-        List<Product> products =
-            allProducts.sublist(startIndex, endIndex).map((json) => Product.fromJson(json)).toList();
-
-        return products;
+        return getPagination(products, page, pageSize);
       } else {
         throw Exception('Failed to load products');
       }
@@ -50,5 +47,16 @@ class ProductRepository {
       print(e);
       throw Exception('Failed to add product: $e');
     }
+  }
+
+  List<Product> getPagination(List<Product> allProducts, int page, int pageSize) {
+    int startIndex = (page - 1) * pageSize;
+    int endIndex = startIndex + pageSize;
+
+    if (startIndex >= allProducts.length) return [];
+
+    if (endIndex > allProducts.length) endIndex = allProducts.length;
+
+    return allProducts.sublist(startIndex, endIndex);
   }
 }
