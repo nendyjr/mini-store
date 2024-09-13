@@ -26,7 +26,6 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
     // Add product
     on<AddProductEvent>((event, emit) async {
-      print('Addproduct event ${event.product.name}');
       emit(ProductAdding());
       try {
         await productRepository.addProduct(event.product);

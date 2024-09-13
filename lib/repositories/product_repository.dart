@@ -38,9 +38,7 @@ class ProductRepository {
   Future<void> addProduct(Product product) async {
     try {
       final params = product.addProductToJson();
-      print(params);
       Response response = await _dio.post(baseUrl, data: params);
-      print(response);
       if (response.statusCode != 201) {
         throw Exception('Failed to add product');
       }
