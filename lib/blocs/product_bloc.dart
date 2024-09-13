@@ -11,12 +11,17 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<LoadProductsEvent>((event, emit) async {
       emit(ProductLoading());
       try {
-        final products = await productRepository.fetchProducts(event.page, event.pageSize);
+        final products = await productRepository.fetchProducts(event.page, event.pageSize, event.query);
         emit(ProductLoaded(products: products, hasReachedMax: products.isNotEmpty));
       } catch (e) {
         print(e);
         emit(ProductError(e.toString()));
       }
+    });
+    // Search product
+    on<SearchProductEvent>((event, emit) async {
+      final products = await productRepository.fetchProducts(1, 10, event.query);
+      emit(ProductLoaded(products: products, hasReachedMax: products.isNotEmpty));
     });
 
     // Add product

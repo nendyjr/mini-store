@@ -50,6 +50,7 @@ class Product {
   // Convert Product to JSON for API request
   Map<String, dynamic> toJson() {
     return {
+      '_id': internalId,
       'id': id,
       'categoryId': categoryId,
       'categoryName': categoryName,

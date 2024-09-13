@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mini_store/repositories/product_repository.dart';
 import 'package:mini_store/blocs/product_bloc.dart';
@@ -21,12 +22,13 @@ class _ProductListState extends State<ProductListScreen> {
   final ScrollController _controller = ScrollController();
   List<Product> productList = [];
   int _currentPage = 1;
-  final pageSize = 10;
+  final _pageSize = 10;
   bool hasNextPage = false;
+  String _searchQuery = '';
 
   @override
   void initState() {
-    _newsBloc.add(LoadProductsEvent(page: 1, pageSize: pageSize));
+    _newsBloc.add(LoadProductsEvent(page: _currentPage, pageSize: _pageSize, query: _searchQuery));
     super.initState();
     _controller.addListener(_loadMore);
   }
@@ -40,7 +42,7 @@ class _ProductListState extends State<ProductListScreen> {
   void _loadMore() {
     if (_controller.position.pixels == _controller.position.maxScrollExtent && hasNextPage) {
       _currentPage++;
-      _newsBloc.add(LoadProductsEvent(page: _currentPage, pageSize: pageSize));
+      _newsBloc.add(LoadProductsEvent(page: _currentPage, pageSize: _pageSize, query: _searchQuery));
     }
   }
 
@@ -50,56 +52,91 @@ class _ProductListState extends State<ProductListScreen> {
       appBar: AppBar(
         title: const Text('Product List'),
       ),
-      body: BlocProvider(
-        create: (context) => _newsBloc,
-        child: BlocBuilder<ProductBloc, ProductState>(
-          builder: (context, state) {
-            if (state is ProductLoading || state is ProductAdding) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (state is ProductLoaded) {
-              hasNextPage = !state.hasReachedMax;
-              if (state.products.isEmpty) return const Center(child: Text('Product list is empty'));
-
-              if (_currentPage == 1) {
-                productList = state.products;
-              } else {
-                productList.addAll(state.products);
-              }
-              return ListView.builder(
-                controller: _controller,
-                itemCount: productList.length,
-                itemBuilder: (context, index) {
-                  Product product = state.products[index];
-                  return ListTile(
-                    leading: Image.network(product.image ?? '',
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => Image.asset("assets/images/default_image.png")),
-                    title: Text(product.name ?? ''),
-                    subtitle: Text('Price: ${product.harga}'),
-                    onTap: () {
-                      // Navigate to the ProductDetailsScreen
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProductDetailsScreen(product: product),
-                        ),
-                      );
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Search',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                    onChanged: (query) {
+                      setState(() {
+                        _searchQuery = query;
+                      });
                     },
-                  );
+                  ),
+                ),
+                ElevatedButton(
+                  child: Text('Search'),
+                  onPressed: () {
+                    _currentPage = 1;
+                    _newsBloc.add(SearchProductEvent(page: _currentPage, pageSize: _pageSize, query: _searchQuery));
+                  },
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: BlocProvider(
+              create: (context) => _newsBloc,
+              child: BlocBuilder<ProductBloc, ProductState>(
+                builder: (context, state) {
+                  if (state is ProductLoading || state is ProductAdding) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (state is ProductLoaded) {
+                    hasNextPage = !state.hasReachedMax;
+                    if (state.products.isEmpty) return const Center(child: Text('Product list is empty'));
+
+                    if (_currentPage == 1) {
+                      productList = state.products;
+                    } else {
+                      productList.addAll(state.products);
+                    }
+                    return ListView.builder(
+                      controller: _controller,
+                      itemCount: productList.length,
+                      itemBuilder: (context, index) {
+                        Product product = state.products[index];
+                        return ListTile(
+                          leading: Image.network(product.image ?? '',
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Image.asset("assets/images/default_image.png")),
+                          title: Text(product.name ?? ''),
+                          subtitle: Text('Price: ${product.harga}'),
+                          onTap: () {
+                            // Navigate to the ProductDetailsScreen
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ProductDetailsScreen(product: product),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  } else if (state is ProductAdded) {
+                    _newsBloc.add(LoadProductsEvent(page: 1, pageSize: 10, query: _searchQuery));
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (state is ProductError) {
+                    return const Center(child: Text('Failed to load products'));
+                  } else {
+                    return const SizedBox.shrink();
+                  }
                 },
-              );
-            } else if (state is ProductAdded) {
-              _newsBloc.add(LoadProductsEvent(page: 1, pageSize: 10));
-              return const Center(child: CircularProgressIndicator());
-            } else if (state is ProductError) {
-              return const Center(child: Text('Failed to load products'));
-            } else {
-              return const SizedBox.shrink();
-            }
-          },
-        ),
+              ),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

@@ -9,24 +9,25 @@ class ProductRepository {
   final ProductPreference _preference = ProductPreference();
 
   // Fetch products with pagination
-  Future<List<Product>> fetchProducts(int page, int pageSize) async {
+  Future<List<Product>> fetchProducts(int page, int pageSize, String search) async {
     try {
-      if (page > 1) {
+      if (page > 1 || search.isNotEmpty) {
         final products = await _preference.loadProductList();
-        getPagination(products, page, pageSize);
-      }
-      // Fetch all products
-      final response = await _dio.get(baseUrl);
-      if (response.statusCode == 200) {
-        List<dynamic> allProducts = response.data;
-
-        List<Product> products = allProducts.map((json) => Product.fromJson(json)).toList();
-
-        _preference.saveProductList(products);
-
-        return getPagination(products, page, pageSize);
+        return getPagination(products, page, pageSize, search);
       } else {
-        throw Exception('Failed to load products');
+        // Fetch all products
+        final response = await _dio.get(baseUrl);
+        if (response.statusCode == 200) {
+          List<dynamic> allProducts = response.data;
+
+          List<Product> products = allProducts.map((json) => Product.fromJson(json)).toList();
+
+          _preference.saveProductList(products);
+
+          return getPagination(products, page, pageSize, search);
+        } else {
+          throw Exception('Failed to load products');
+        }
       }
     } catch (error) {
       throw Exception('Failed to load products: $error');
@@ -37,6 +38,7 @@ class ProductRepository {
   Future<void> addProduct(Product product) async {
     try {
       final params = product.toJson();
+      params.remove('_id');
       print(params);
       Response response = await _dio.post(baseUrl, data: product.toJson());
       print(response);
@@ -49,14 +51,20 @@ class ProductRepository {
     }
   }
 
-  List<Product> getPagination(List<Product> allProducts, int page, int pageSize) {
+  List<Product> getPagination(List<Product> allProducts, int page, int pageSize, String search) {
+    final filteredProducts = search.isNotEmpty
+        ? allProducts.where((product) {
+            return (product.name ?? '').toLowerCase().contains(search.toLowerCase()) ||
+                (product.categoryName ?? '').toLowerCase().contains(search.toLowerCase());
+          }).toList()
+        : allProducts;
     int startIndex = (page - 1) * pageSize;
     int endIndex = startIndex + pageSize;
 
-    if (startIndex >= allProducts.length) return [];
+    if (startIndex >= filteredProducts.length) return [];
 
-    if (endIndex > allProducts.length) endIndex = allProducts.length;
+    if (endIndex > filteredProducts.length) endIndex = filteredProducts.length;
 
-    return allProducts.sublist(startIndex, endIndex);
+    return filteredProducts.sublist(startIndex, endIndex);
   }
 }
