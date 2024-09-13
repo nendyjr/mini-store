@@ -37,8 +37,7 @@ class ProductRepository {
   // Add New Product
   Future<void> addProduct(Product product) async {
     try {
-      final params = product.toJson();
-      params.remove('_id');
+      final params = product.addProductToJson();
       print(params);
       Response response = await _dio.post(baseUrl, data: product.toJson());
       print(response);

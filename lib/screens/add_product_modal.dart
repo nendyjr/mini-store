@@ -138,7 +138,7 @@ class _AddProductModalState extends State<AddProductModal> {
                         decoration: const InputDecoration(labelText: 'Image Url'),
                         keyboardType: TextInputType.number,
                         onSaved: (value) => _image = value!,
-                        validator: (value) => value!.isEmpty ? 'Enter height' : null,
+                        validator: (value) => value!.isEmpty ? 'Enter Image url' : null,
                       ),
                       const SizedBox(height: 16),
                       Row(
@@ -161,7 +161,7 @@ class _AddProductModalState extends State<AddProductModal> {
                                   }
 
                                   final newProduct = Product(
-                                    id: (DateTime.now().millisecondsSinceEpoch / 1000).round(),
+                                    id: (DateTime.now().millisecondsSinceEpoch / 1000000).round(),
                                     categoryId: _selectedCategory!.id,
                                     categoryName: _selectedCategory!.name,
                                     sku: _sku!,

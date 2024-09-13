@@ -65,4 +65,21 @@ class Product {
       'harga': harga,
     };
   }
+
+  Map<String, dynamic> addProductToJson() {
+    return {
+      'id': id,
+      'categoryId': categoryId,
+      'categoryName': categoryName,
+      'sku': sku,
+      'name': name,
+      'description': description,
+      'weight': weight,
+      'width': width,
+      'length': length,
+      'height': height,
+      'image': image,
+      'harga': harga,
+    };
+  }
 }
